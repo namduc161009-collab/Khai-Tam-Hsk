@@ -294,13 +294,16 @@
         let currentUser = localStorage.getItem("hsk_user") || null;
         let userList = JSON.parse(localStorage.getItem("hsk_users")) || [{ username: "admin", pass: "admin123", role: "admin" }];
         
-        // Quản lý mã kích hoạt với trạng thái used (đã dùng) và usedBy (tài khoản đã dùng)
+        // Đã tích hợp danh sách mã kích hoạt mặc định theo yêu cầu
         let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [
-            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1", used: false, usedBy: null },
-            { code: "HSK1-ABC-123", level: "HSK1", used: false, usedBy: null },
-            { code: "HSK2-XYZ-456", level: "HSK2", used: false, usedBy: null },
-            { code: "HSK3-VIP-789", level: "HSK3", used: false, usedBy: null },
-            { code: "HSK4-VIP-888", level: "HSK4-Tập 2", used: false, usedBy: null }
+            { code: "HSK1-VIP-01", level: "HSK1", used: false, usedBy: null },
+            { code: "HSK1-VIP-02", level: "HSK1", used: false, usedBy: null },
+            { code: "HSK2-VIP-01", level: "HSK2", used: false, usedBy: null },
+            { code: "HSK3-VIP-01", level: "HSK3", used: false, usedBy: null },
+            { code: "HSK4-VIP-01", level: "HSK4-Tập 1", used: false, usedBy: null },
+            { code: "HSK4-VIP-02", level: "HSK4-Tập 2", used: false, usedBy: null },
+            { code: "HSK5-VIP-01", level: "HSK5-Tập 1", used: false, usedBy: null },
+            { code: "HSK6-VIP-01", level: "HSK6-Tập 1", used: false, usedBy: null }
         ];
         
         let currentLevel = "HSK1";
@@ -451,7 +454,6 @@
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm";
                 
-                // Hiển thị nhãn trạng thái đã dùng hoặc chưa dùng
                 const statusBadge = item.used 
                     ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã sử dụng bởi: ${item.usedBy}</span>` 
                     : `<span class="inline-block mt-1 text-[11px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-semibold">Chưa sử dụng</span>`;
@@ -598,7 +600,7 @@
             const totalQuestions = Math.min(5, quizList.length);
             if(quizIndex >= totalQuestions) {
                 document.getElementById('quiz-box').innerHTML = `
-                    <div class="text-center space-y-4 py-8">
+                    <div class="text-center space-y-4 py8">
                         <h3 class="text-2xl font-bold text-slate-800">Hoàn thành bài trắc nghiệm!</h3>
                         <p class="text-lg text-slate-600">Điểm số của bạn: <b class="text-red-600">${quizScore} / ${totalQuestions}</b></p>
                         <button onclick="startQuiz()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium shadow hover:bg-red-700">Làm lại</button>
