@@ -23,10 +23,10 @@
                 </div>
             </div>
 
-            <!-- Tab chuyển đổi giữa Đăng nhập và Đăng ký -->
+            <!-- Tab chuyển đổi giữa Đăng nhập và Tạo tài khoản -->
             <div class="flex border-b pb-2">
-                <button onclick="switchAuthMode('login')" id="btn-mode-login" class="flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center transition">Đăng nhập</button>
-                <button onclick="switchAuthMode('register')" id="btn-mode-register" class="flex-1 font-medium text-slate-400 text-sm pb-2 text-center transition">Đăng ký tài khoản</button>
+                <button onclick="switchAuthMode('login')" id="btn-mode-login" class="flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center transition">Đăng nhập tài khoản</button>
+                <button onclick="switchAuthMode('register')" id="btn-mode-register" class="flex-1 font-medium text-slate-400 text-sm pb-2 text-center transition">Tạo tài khoản</button>
             </div>
 
             <!-- Form Đăng nhập -->
@@ -42,15 +42,19 @@
                 <button onclick="handleLogin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">Đăng nhập ngay</button>
             </div>
 
-            <!-- Form Đăng ký (Không cần mã ở bước đăng ký nữa) -->
+            <!-- Form Tạo tài khoản -->
             <div id="register-form" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản mới</label>
-                    <input type="text" id="reg-username" placeholder="Chọn tên tài khoản..." class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-red-500 text-sm bg-slate-50">
+                    <input type="text" id="reg-username" placeholder="Chọn tên tài khoản..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
-                    <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-red-500 text-sm bg-slate-50">
+                    <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Mã khóa học / Mã kích hoạt (Do Admin cấp)</label>
+                    <input type="text" id="reg-course-code" placeholder="Nhập mã kích hoạt..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
                 <button onclick="handleRegister()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">Đăng ký tài khoản</button>
             </div>
@@ -69,7 +73,7 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <button id="admin-panel-btn" onclick="openAdminModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow transition">
-                        <i class="fa-solid fa-shield-halved mr-1"></i> Quản lý mã kích hoạt
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Quản lý mã học viên
                     </button>
                     <span id="welcome-user" class="text-sm font-medium"></span>
                     <button onclick="logout()" class="bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg text-sm transition font-medium">Đăng xuất</button>
@@ -80,30 +84,94 @@
         <!-- Main Content Area -->
         <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
             
-            <!-- Tab Home: Sảnh học viên (Ban đầu trống, có ô nhập mã kích hoạt) -->
+            <!-- Tab Home: Sảnh 6 ô khóa học H1 - H6 -->
             <div id="tab-home" class="space-y-6">
-                <div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 md:p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-extrabold mb-2">Chinh phục HSK cùng开心 HSK</h2>
-                        <p class="opacity-90 text-sm md:text-base">Nhập mã kích hoạt khóa học do Admin cung cấp bên dưới để mở khóa nội dung học tập.</p>
-                    </div>
-                    <!-- Ô nhập mã kích hoạt khóa học ngay tại sảnh -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 w-full md:w-80 space-y-3">
-                        <label class="block text-xs font-semibold text-white">Nhập mã kích hoạt khóa học:</label>
-                        <div class="flex space-x-2">
-                            <input type="text" id="student-activation-code" placeholder="VD: HSK4-VIP-2026" class="flex-grow bg-white text-slate-800 border-none rounded-lg px-3 py-2 text-sm outline-none">
-                            <button onclick="activateCourseCode()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow transition">Kích hoạt</button>
-                        </div>
-                    </div>
+                <div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 md:p-8 text-white shadow-lg">
+                    <h2 class="text-2xl md:text-3xl font-extrabold mb-2">Chinh phục HSK từ cấp 1 đến cấp 6</h2>
+                    <p class="opacity-90 text-sm md:text-base">Lựa chọn khóa học phù hợp bên dưới để bắt đầu học từ vựng, luyện Flashcard và làm trắc nghiệm.</p>
                 </div>
 
                 <div class="mb-4">
-                    <h3 class="text-xl font-bold text-slate-700"><i class="fa-solid fa-book-bookmark mr-2 text-red-600"></i>Khóa học đã kích hoạt của bạn</h3>
+                    <h3 class="text-xl font-bold text-slate-700"><i class="fa-solid fa-book-bookmark mr-2 text-red-600"></i>Danh sách các khóa học</h3>
                 </div>
 
-                <!-- Khu vực hiển thị khóa học của học viên (Ban đầu trống nếu chưa nhập mã) -->
-                <div id="student-courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Các khóa học sẽ tự động render vào đây khi học viên nhập mã đúng -->
+                <!-- Grid 6 ô H1 -> H6 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- H1 -->
+                    <div onclick="selectCourse('HSK1', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 1</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Cơ bản vỡ lòng</h4>
+                            <p class="text-slate-500 text-sm mt-1">150 từ vựng căn bản nhất</p>
+                        </div>
+                    </div>
+                    <!-- H2 -->
+                    <div onclick="selectCourse('HSK2', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-orange-100 text-orange-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 2</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Sơ cấp 2</h4>
+                            <p class="text-slate-500 text-sm mt-1">150 từ vựng tiếp theo</p>
+                        </div>
+                    </div>
+                    <!-- H3 -->
+                    <div onclick="selectCourse('HSK3', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-amber-100 text-amber-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 3</span>
+                            <i class="fa-solid fa-arrow-right text-slate-400"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Trung cấp 1</h4>
+                            <p class="text-slate-500 text-sm mt-1">Giao tiếp hàng ngày trôi chảy</p>
+                        </div>
+                    </div>
+                    <!-- H4 -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-emerald-100 text-emerald-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 4</span>
+                            <i class="fa-solid fa-layer-group text-emerald-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Trung cấp nâng cao</h4>
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="selectCourse('HSK4', 'Tập 1')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 rounded-lg text-sm font-semibold transition">Tập 1</button>
+                                <button onclick="selectCourse('HSK4', 'Tập 2')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-2 rounded-lg text-sm font-semibold transition">Tập 2</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- H5 -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 5</span>
+                            <i class="fa-solid fa-layer-group text-blue-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Cao cấp 1</h4>
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="selectCourse('HSK5', 'Tập 1')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-sm font-semibold transition">Tập 1</button>
+                                <button onclick="selectCourse('HSK5', 'Tập 2')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-sm font-semibold transition">Tập 2</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- H6 -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="bg-purple-100 text-purple-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 6</span>
+                            <i class="fa-solid fa-layer-group text-purple-500"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-slate-800">Cao cấp đỉnh cao</h4>
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="selectCourse('HSK6', 'Tập 1')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 py-2 rounded-lg text-sm font-semibold transition">Tập 1</button>
+                                <button onclick="selectCourse('HSK6', 'Tập 2')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 py-2 rounded-lg text-sm font-semibold transition">Tập 2</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -166,11 +234,11 @@
         </main>
     </div>
 
-    <!-- Modal Admin: Tạo mã và Quản lý trạng thái sử dụng -->
+    <!-- Modal Admin: Tạo mã -->
     <div id="admin-modal" class="fixed inset-0 bg-black/50 hidden flex justify-center items-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-2"></i>Quản lý mã kích hoạt khóa học</h3>
+                <h3 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-2"></i>Quản lý mã khóa học cho học viên</h3>
                 <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="space-y-3">
@@ -184,9 +252,9 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Gán cho khóa học:</label>
                     <select id="admin-code-level" class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-amber-500 text-sm">
-                        <option value="HSK1">HSK 1 (Cơ bản vỡ lòng)</option>
-                        <option value="HSK2">HSK 2 (Sơ cấp 2)</option>
-                        <option value="HSK3">HSK 3 (Trung cấp 1)</option>
+                        <option value="HSK1">HSK 1</option>
+                        <option value="HSK2">HSK 2</option>
+                        <option value="HSK3">HSK 3</option>
                         <option value="HSK4-Tập 1">HSK 4 - Tập 1</option>
                         <option value="HSK4-Tập 2">HSK 4 - Tập 2</option>
                         <option value="HSK5-Tập 1">HSK 5 - Tập 1</option>
@@ -198,7 +266,7 @@
                 <button onclick="createCourseCode()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg shadow transition text-sm">Tạo và lưu mã</button>
             </div>
             <div class="border-t pt-3">
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Danh sách mã và trạng thái:</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Danh sách mã đã tạo:</h4>
                 <div id="admin-codes-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
             </div>
         </div>
@@ -216,23 +284,23 @@
             { id: 2, level: "HSK1", book: "Tất cả", word: "爸爸", pinyin: "bàba", meaning: "Bố, cha", type: "Danh từ" },
             { id: 3, level: "HSK2", book: "Tất cả", word: "机场", pinyin: "jīchǎng", meaning: "Sân bay", type: "Danh từ" },
             { id: 4, level: "HSK3", book: "Tất cả", word: "照顾", pinyin: "zhàogù", meaning: "Chăm sóc", type: "Động từ" },
-            { id: 5, level: "HSK4-Tập 1", book: "Tập 1", word: "爱情", pinyin: "àiqíng", meaning: "Tình yêu", type: "Danh từ" },
-            { id: 6, level: "HSK4-Tập 1", book: "Tập 1", word: "安排", pinyin: "ānpái", meaning: "Sắp xếp, bố trí", type: "Động từ" },
-            { id: 7, level: "HSK4-Tập 2", book: "Tập 2", word: "标准", pinyin: "biāozhǔn", meaning: "Tiêu chuẩn", type: "Danh từ" },
-            { id: 8, level: "HSK5-Tập 1", book: "Tập 1", word: "包袱", pinyin: "bāofu", meaning: "Gói đồ, gánh nặng", type: "Danh từ" },
-            { id: 9, level: "HSK6-Tập 1", book: "Tập 1", word: "翱翔", pinyin: "áoxiáng", meaning: "Bay lượn", type: "Động từ" }
+            { id: 5, level: "HSK4", book: "Tập 1", word: "爱情", pinyin: "àiqíng", meaning: "Tình yêu", type: "Danh từ" },
+            { id: 6, level: "HSK4", book: "Tập 1", word: "安排", pinyin: "ānpái", meaning: "Sắp xếp, bố trí", type: "Động từ" },
+            { id: 7, level: "HSK4", book: "Tập 2", word: "标准", pinyin: "biāozhǔn", meaning: "Tiêu chuẩn", type: "Danh từ" },
+            { id: 8, level: "HSK5", book: "Tập 1", word: "包袱", pinyin: "bāofu", meaning: "Gói đồ, gánh nặng", type: "Danh từ" },
+            { id: 9, level: "HSK6", book: "Tập 1", word: "翱翔", pinyin: "áoxiáng", meaning: "Bay lượn", type: "Động từ" }
         ];
 
         let currentUser = localStorage.getItem("hsk_user") || null;
-        let userList = JSON.parse(localStorage.getItem("hsk_users")) || [
-            { username: "admin", pass: "admin123", role: "admin", unlocked: [] }
-        ];
+        let userList = JSON.parse(localStorage.getItem("hsk_users")) || [{ username: "admin", pass: "admin123", role: "admin" }];
         
-        // Danh sách mã kích hoạt (mỗi mã có trạng thái used: false/true và usedBy: tên học viên)
+        // Thêm các mã random mẫu sẵn để test ngay trên mọi thiết bị
         let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [
-            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1", used: false, usedBy: null },
-            { code: "HSK1-DEMO-111", level: "HSK1", used: false, usedBy: null },
-            { code: "HSK2-DEMO-222", level: "HSK2", used: false, usedBy: null }
+            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1" },
+            { code: "HSK1-ABC-123", level: "HSK1" },
+            { code: "HSK2-XYZ-456", level: "HSK2" },
+            { code: "HSK3-VIP-789", level: "HSK3" },
+            { code: "HSK4-VIP-888", level: "HSK4-Tập 2" }
         ];
         
         let currentLevel = "HSK1";
@@ -275,11 +343,15 @@
         function handleRegister() {
             const u = document.getElementById('reg-username').value.trim();
             const p = document.getElementById('reg-password').value.trim();
+            const code = document.getElementById('reg-course-code').value.trim();
 
-            if(!u || !p) { alert('Vui lòng điền đầy đủ tên tài khoản và mật khẩu!'); return; }
+            if(!u || !p || !code) { alert('Vui lòng điền đầy đủ thông tin!'); return; }
             if(userList.some(x => x.username === u)) { alert('Tên tài khoản đã tồn tại!'); return; }
 
-            userList.push({ username: u, pass: p, role: 'student', unlocked: [] });
+            const codeObj = activeCodes.find(x => x.code === code);
+            if(!codeObj) { alert('Mã khóa học không hợp lệ hoặc không tồn tại!'); return; }
+
+            userList.push({ username: u, pass: p, role: 'student', assignedLevel: codeObj.level });
             localStorage.setItem("hsk_users", JSON.stringify(userList));
 
             alert('Đăng ký tài khoản thành công! Hãy chuyển sang phần đăng nhập.');
@@ -323,84 +395,8 @@
             document.getElementById('tab-quiz').classList.add('hidden');
 
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            if(tabName === 'home') renderStudentCourses();
             if(tabName === 'quiz') startQuiz();
             if(tabName === 'flashcard') initFlashcard();
-        }
-
-        // Học viên nhập mã kích hoạt khóa học tại sảnh
-        function activateCourseCode() {
-            const codeInput = document.getElementById('student-activation-code').value.trim();
-            if(!codeInput) { alert('Vui lòng nhập mã kích hoạt!'); return; }
-
-            const codeObj = activeCodes.find(x => x.code === codeInput);
-            if(!codeObj) { alert('Mã kích hoạt không tồn tại hoặc không hợp lệ!'); return; }
-
-            if(codeObj.used) {
-                alert(`Mã này đã được sử dụng trước đó bởi tài khoản: ${codeObj.usedBy}! Mỗi mã chỉ dùng được cho 1 học viên duy nhất.`);
-                return;
-            }
-
-            // Đánh dấu mã đã được sử dụng
-            codeObj.used = true;
-            codeObj.usedBy = currentUser;
-            localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
-
-            // Thêm quyền học vào tài khoản học viên
-            let userObj = userList.find(x => x.username === currentUser);
-            if(userObj) {
-                if(!userObj.unlocked) userObj.unlocked = [];
-                if(!userObj.unlocked.includes(codeObj.level)) {
-                    userObj.unlocked.push(codeObj.level);
-                }
-                localStorage.setItem("hsk_users", JSON.stringify(userList));
-            }
-
-            document.getElementById('student-activation-code').value = '';
-            alert(`Kích hoạt thành công khóa học: ${codeObj.level}!`);
-            renderStudentCourses();
-        }
-
-        // Render các khóa học đã được kích hoạt của học viên (Ban đầu trống)
-        function renderStudentCourses() {
-            const grid = document.getElementById('student-courses-grid');
-            grid.innerHTML = '';
-
-            const userObj = userList.find(x => x.username === currentUser);
-            if(!userObj || !userObj.unlocked || userObj.unlocked.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full bg-white border border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-2">
-                        <i class="fa-solid fa-lock text-4xl text-slate-300 mb-2"></i>
-                        <h4 class="text-lg font-bold text-slate-600">Bạn chưa kích hoạt khóa học nào</h4>
-                        <p class="text-slate-400 text-sm">Vui lòng nhập mã kích hoạt do giáo viên/admin cấp vào ô phía trên để bắt đầu học.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            userObj.unlocked.forEach(level => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4";
-                card.onclick = () => {
-                    if(level.includes("Tập")) {
-                        const parts = level.split("-");
-                        selectCourse(parts[0], parts[1]);
-                    } else {
-                        selectCourse(level, "Tất cả");
-                    }
-                };
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-lg text-sm">${level}</span>
-                        <i class="fa-solid fa-arrow-right text-slate-400"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-xl font-bold text-slate-800">Khóa học ${level}</h4>
-                        <p class="text-slate-500 text-sm mt-1">Đã kích hoạt thành công - Bấm để vào học từ vựng</p>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
         }
 
         function selectCourse(level, book) {
@@ -428,37 +424,20 @@
             const levelVal = document.getElementById('admin-code-level').value;
             if(!codeVal) { alert('Vui lòng nhập mã khóa học!'); return; }
 
-            if(activeCodes.some(x => x.code === codeVal)) {
-                alert('Mã này đã tồn tại trên hệ thống!');
-                return;
-            }
-
-            activeCodes.push({ code: codeVal, level: levelVal, used: false, usedBy: null });
+            activeCodes.push({ code: codeVal, level: levelVal });
             localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
             document.getElementById('admin-new-code').value = '';
             renderAdminCodes();
             alert('Tạo mã thành công!');
         }
 
-        // Hiển thị danh sách mã và trạng thái tự động "Đã được sử dụng (bởi: ...)"
         function renderAdminCodes() {
             const listEl = document.getElementById('admin-codes-list');
             listEl.innerHTML = '';
             activeCodes.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm";
-                
-                let statusBadge = item.used 
-                    ? `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-600">Đã được sử dụng (bởi: ${item.usedBy})</span>` 
-                    : `<span class="text-xs font-semibold px-2 py-0.5 rounded bg-green-100 text-green-600">Chưa sử dụng</span>`;
-
-                div.innerHTML = `
-                    <div class="space-y-0.5">
-                        <p><b>${item.code}</b> <span class="text-xs text-slate-500">(${item.level})</span></p>
-                        <div>${statusBadge}</div>
-                    </div>
-                    <button onclick="deleteCode(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold ml-2">Xóa</button>
-                `;
+                div.innerHTML = `<span><b>${item.code}</b> (${item.level})</span> <button onclick="deleteCode(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Xóa</button>`;
                 listEl.appendChild(div);
             });
         }
