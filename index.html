@@ -271,7 +271,7 @@
         开心 HSK - Ứng dụng học từ vựng tiếng Trung trực tuyến © 2026
     </footer>
 
-    <!-- Script kết nối Firebase Cloud Server -->
+    <!-- Script kết nối Firebase Cloud Server an toàn (chống đơ) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, update, remove, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -288,8 +288,13 @@
         };
         // =========================================================================
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        let db = null;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch (e) {
+            console.error("Lỗi khởi tạo Firebase:", e);
+        }
 
         const vocabData = [
             { id: 1, level: "HSK1", book: "Tất cả", word: "爱", pinyin: "ài", meaning: "Yêu, thích", type: "Động từ" },
@@ -308,31 +313,37 @@
         let currentBook = "Tất cả";
 
         window.onload = async function() {
-            // Khởi tạo tài khoản admin và mã mặc định lên Firebase nếu server trống lần đầu
-            await initDefaultDataOnCloud();
+            if (db) {
+                try {
+                    await initDefaultDataOnCloud();
+                } catch (e) {
+                    console.warn("Chưa kết nối được Database hoặc hết hạn Test Mode:", e);
+                }
+            }
             updateUIState();
         };
 
         async function initDefaultDataOnCloud() {
-            const dbRef = ref(db);
-            const snapshot = await get(child(dbRef, 'users'));
-            if (!snapshot.exists()) {
-                await set(ref(db, 'users/admin'), { username: "admin", pass: "admin123", role: "admin" });
-            }
+            if (!db) return;
+            try {
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, 'users'));
+                if (!snapshot.exists()) {
+                    await set(ref(db, 'users/admin'), { username: "admin", pass: "admin123", role: "admin" });
+                }
 
-            const codeSnapshot = await get(child(dbRef, 'codes'));
-            if (!codeSnapshot.exists()) {
-                const defaultCodes = {
-                    "HSK1-VIP-01": { code: "HSK1-VIP-01", level: "HSK1", used: false, usedBy: null },
-                    "HSK1-VIP-02": { code: "HSK1-VIP-02", level: "HSK1", used: false, usedBy: null },
-                    "HSK2-VIP-01": { code: "HSK2-VIP-01", level: "HSK2", used: false, usedBy: null },
-                    "HSK3-VIP-01": { code: "HSK3-VIP-01", level: "HSK3", used: false, usedBy: null },
-                    "HSK4-VIP-01": { code: "HSK4-VIP-01", level: "HSK4-Tập 1", used: false, usedBy: null },
-                    "HSK4-VIP-02": { code: "HSK4-VIP-02", level: "HSK4-Tập 2", used: false, usedBy: null },
-                    "HSK5-VIP-01": { code: "HSK5-VIP-01", level: "HSK5-Tập 1", used: false, usedBy: null },
-                    "HSK6-VIP-01": { code: "HSK6-VIP-01", level: "HSK6-Tập 1", used: false, usedBy: null }
-                };
-                await set(ref(db, 'codes'), defaultCodes);
+                const codeSnapshot = await get(child(dbRef, 'codes'));
+                if (!codeSnapshot.exists()) {
+                    const defaultCodes = {
+                        "HSK1-VIP-01": { code: "HSK1-VIP-01", level: "HSK1", used: false, usedBy: null },
+                        "HSK2-VIP-01": { code: "HSK2-VIP-01", level: "HSK2", used: false, usedBy: null },
+                        "HSK3-VIP-01": { code: "HSK3-VIP-01", level: "HSK3", used: false, usedBy: null },
+                        "HSK4-VIP-01": { code: "HSK4-VIP-01", level: "HSK4-Tập 1", used: false, usedBy: null }
+                    };
+                    await set(ref(db, 'codes'), defaultCodes);
+                }
+            } catch (err) {
+                console.error("Lỗi khởi tạo dữ liệu mặc định:", err);
             }
         }
 
@@ -360,15 +371,30 @@
             const p = document.getElementById('login-password').value.trim();
             if(!u || !p) { alert('Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!'); return; }
 
-            const snapshot = await get(child(ref(db), `users/${u}`));
-            if(!snapshot.exists()) { alert('Tài khoản không tồn tại!'); return; }
-            
-            const userData = snapshot.val();
-            if(userData.pass !== p) { alert('Sai mật khẩu!'); return; }
-            
-            currentUser = u;
-            localStorage.setItem("hsk_user", currentUser);
-            updateUIState();
+            // Cho phép đăng nhập nhanh tài khoản admin cứng nếu chưa kết nối cloud
+            if(u === 'admin' && p === 'admin123') {
+                currentUser = 'admin';
+                localStorage.setItem("hsk_user", currentUser);
+                updateUIState();
+                return;
+            }
+
+            if (!db) { alert('Chưa cấu hình Firebase Cloud!'); return; }
+
+            try {
+                const snapshot = await get(child(ref(db), `users/${u}`));
+                if(!snapshot.exists()) { alert('Tài khoản không tồn tại!'); return; }
+                
+                const userData = snapshot.val();
+                if(userData.pass !== p) { alert('Sai mật khẩu!'); return; }
+                
+                currentUser = u;
+                localStorage.setItem("hsk_user", currentUser);
+                updateUIState();
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi kết nối Server! Vui lòng kiểm tra lại cấu hình Firebase hoặc Rules.');
+            }
         }
 
         window.handleRegister = async function() {
@@ -377,30 +403,31 @@
             const code = document.getElementById('reg-course-code').value.trim();
 
             if(!u || !p || !code) { alert('Vui lòng điền đầy đủ thông tin!'); return; }
+            if (!db) { alert('Chưa cấu hình Firebase Cloud!'); return; }
 
-            // Kiểm tra xem tên tài khoản đã có trên Server chưa
-            const userSnap = await get(child(ref(db), `users/${u}`));
-            if(userSnap.exists()) { alert('Tên tài khoản này đã tồn tại trên hệ thống!'); return; }
+            try {
+                const userSnap = await get(child(ref(db), `users/${u}`));
+                if(userSnap.exists()) { alert('Tên tài khoản này đã tồn tại trên hệ thống!'); return; }
 
-            // Kiểm tra mã trên Server
-            const codeRef = ref(db, `codes/${code}`);
-            const codeSnap = await get(codeRef);
-            if(!codeSnap.exists()) { alert('Mã kích hoạt không tồn tại hoặc không hợp lệ!'); return; }
+                const codeRef = ref(db, `codes/${code}`);
+                const codeSnap = await get(codeRef);
+                if(!codeSnap.exists()) { alert('Mã kích hoạt không tồn tại hoặc không hợp lệ!'); return; }
 
-            const codeData = codeSnap.val();
-            if(codeData.used) {
-                alert(`Mã này đã được sử dụng bởi tài khoản "${codeData.usedBy || 'khác'}" trước đó!`);
-                return;
+                const codeData = codeSnap.val();
+                if(codeData.used) {
+                    alert(`Mã này đã được sử dụng bởi tài khoản "${codeData.usedBy || 'khác'}" trước đó!`);
+                    return;
+                }
+
+                await update(codeRef, { used: true, usedBy: u });
+                await set(ref(db, `users/${u}`), { username: u, pass: p, role: 'student', assignedLevel: codeData.level });
+
+                alert('Đăng ký tài khoản thành công! Hãy chuyển sang phần đăng nhập.');
+                switchAuthMode('login');
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi đăng ký! Kiểm tra lại kết nối hoặc phân quyền Firebase.');
             }
-
-            // Cập nhật trạng thái mã thành Đã dùng trên Server ngay lập tức
-            await update(codeRef, { used: true, usedBy: u });
-
-            // Lưu tài khoản mới lên Server
-            await set(ref(db, `users/${u}`), { username: u, pass: p, role: 'student', assignedLevel: codeData.level });
-
-            alert('Đăng ký tài khoản thành công! Hãy chuyển sang phần đăng nhập.');
-            switchAuthMode('login');
         }
 
         window.logout = function() {
@@ -420,11 +447,19 @@
                 mainAppScreen.classList.remove('hidden');
                 welcome.innerText = `Xin chào, ${currentUser}!`;
                 
-                const userSnap = await get(child(ref(db), `users/${currentUser}`));
-                if(userSnap.exists() && userSnap.val().role === 'admin') {
+                if (currentUser === 'admin') {
                     adminBtn.classList.remove('hidden');
-                } else {
-                    adminBtn.classList.add('hidden');
+                } else if (db) {
+                    try {
+                        const userSnap = await get(child(ref(db), `users/${currentUser}`));
+                        if(userSnap.exists() && userSnap.val().role === 'admin') {
+                            adminBtn.classList.remove('hidden');
+                        } else {
+                            adminBtn.classList.add('hidden');
+                        }
+                    } catch(e) {
+                        adminBtn.classList.add('hidden');
+                    }
                 }
                 switchTab('home');
             } else {
@@ -468,48 +503,58 @@
             const codeVal = document.getElementById('admin-new-code').value.trim();
             const levelVal = document.getElementById('admin-code-level').value;
             if(!codeVal) { alert('Vui lòng nhập mã khóa học!'); return; }
+            if(!db) { alert('Chưa cấu hình Firebase Cloud!'); return; }
 
-            const codeRef = ref(db, `codes/${codeVal}`);
-            const snap = await get(codeRef);
-            if(snap.exists()) { alert('Mã này đã tồn tại trên Server!'); return; }
+            try {
+                const codeRef = ref(db, `codes/${codeVal}`);
+                const snap = await get(codeRef);
+                if(snap.exists()) { alert('Mã này đã tồn tại trên Server!'); return; }
 
-            await set(codeRef, { code: codeVal, level: levelVal, used: false, usedBy: null });
-            document.getElementById('admin-new-code').value = '';
-            renderAdminCodes();
-            alert('Tạo mã lên Cloud thành công!');
+                await set(codeRef, { code: codeVal, level: levelVal, used: false, usedBy: null });
+                document.getElementById('admin-new-code').value = '';
+                renderAdminCodes();
+                alert('Tạo mã lên Cloud thành công!');
+            } catch(e) {
+                alert('Lỗi tạo mã: ' + e.message);
+            }
         }
 
         window.renderAdminCodes = async function() {
             const listEl = document.getElementById('admin-codes-list');
             listEl.innerHTML = 'Đang tải dữ liệu từ Server...';
+            if(!db) { listEl.innerHTML = 'Chưa cấu hình Firebase Cloud.'; return; }
             
-            const snapshot = await get(child(ref(db), 'codes'));
-            listEl.innerHTML = '';
-            
-            if (!snapshot.exists()) {
-                listEl.innerHTML = '<p class="text-slate-400 text-xs">Chưa có mã nào.</p>';
-                return;
-            }
-
-            const codesObj = snapshot.val();
-            Object.keys(codesObj).forEach(key => {
-                const item = codesObj[key];
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm mb-2";
+            try {
+                const snapshot = await get(child(ref(db), 'codes'));
+                listEl.innerHTML = '';
                 
-                const statusBadge = item.used 
-                    ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã dùng bởi: ${item.usedBy}</span>` 
-                    : `<span class="inline-block mt-1 text-[11px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-semibold">Chưa sử dụng</span>`;
+                if (!snapshot.exists()) {
+                    listEl.innerHTML = '<p class="text-slate-400 text-xs">Chưa có mã nào.</p>';
+                    return;
+                }
 
-                div.innerHTML = `
-                    <div>
-                        <div><b>${item.code}</b> <span class="text-xs text-slate-500">(${item.level})</span></div>
-                        <div>${statusBadge}</div>
-                    </div> 
-                    <button onclick="deleteCode('${item.code}')" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1">Xóa</button>
-                `;
-                listEl.appendChild(div);
-            });
+                const codesObj = snapshot.val();
+                Object.keys(codesObj).forEach(key => {
+                    const item = codesObj[key];
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm mb-2";
+                    
+                    const statusBadge = item.used 
+                        ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã dùng bởi: ${item.usedBy}</span>` 
+                        : `<span class="inline-block mt-1 text-[11px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-semibold">Chưa sử dụng</span>`;
+
+                    div.innerHTML = `
+                        <div>
+                            <div><b>${item.code}</b> <span class="text-xs text-slate-500">(${item.level})</span></div>
+                            <div>${statusBadge}</div>
+                        </div> 
+                        <button onclick="deleteCode('${item.code}')" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1">Xóa</button>
+                    `;
+                    listEl.appendChild(div);
+                });
+            } catch(e) {
+                listEl.innerHTML = '<p class="text-red-500 text-xs">Lỗi tải danh sách mã (kiểm tra Rules Firebase).</p>';
+            }
         }
 
         window.deleteCode = async function(codeKey) {
