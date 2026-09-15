@@ -9,7 +9,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
 
-    <!-- ================= 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ (Hiển thị đầu tiên) ================= -->
+    <!-- ================= 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ ================= -->
     <div id="auth-screen" class="flex-grow flex items-center justify-center p-4">
         <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-slate-200">
             <div class="text-center space-y-2">
@@ -17,7 +17,10 @@
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <h1 class="text-3xl font-extrabold text-slate-800 tracking-wide">开心 HSK</h1>
-                <p class="text-slate-500 text-sm">Học từ vựng tiếng Trung cùng Đức Nam</p>
+                <div class="space-y-0.5 pt-1">
+                    <p class="text-slate-700 font-semibold text-sm tracking-wide">No Pain No Gain</p>
+                    <p class="text-slate-400 text-xs font-medium">不劳无获</p>
+                </div>
             </div>
 
             <!-- Tab chuyển đổi giữa Đăng nhập và Tạo tài khoản -->
@@ -59,7 +62,7 @@
     </div>
 
 
-    <!-- ================= 2. MÀN HÌNH SẢNH CHÍNH & HỌC TẬP (Ẩn cho đến khi đăng nhập) ================= -->
+    <!-- ================= 2. MÀN HÌNH SẢNH CHÍNH & HỌC TẬP ================= -->
     <div id="main-app-screen" class="hidden flex-grow flex flex-col">
         <!-- Header -->
         <header class="bg-red-600 text-white shadow-md">
@@ -92,7 +95,7 @@
                     <h3 class="text-xl font-bold text-slate-700"><i class="fa-solid fa-book-bookmark mr-2 text-red-600"></i>Danh sách các khóa học</h3>
                 </div>
 
-                <!-- Grid 6 ô H1 -> H6 chuẩn như ý bạn -->
+                <!-- Grid 6 ô H1 -> H6 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- H1 -->
                     <div onclick="selectCourse('HSK1', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
@@ -361,7 +364,6 @@
             const userObj = userList.find(x => x.username === currentUser);
 
             if(currentUser) {
-                // Đã đăng nhập: Ẩn trang đăng nhập, hiện sảnh chính 6 ô khóa học
                 authScreen.classList.add('hidden');
                 mainAppScreen.classList.remove('hidden');
                 welcome.innerText = `Xin chào, ${currentUser}!`;
@@ -373,7 +375,6 @@
                 }
                 switchTab('home');
             } else {
-                // Chưa đăng nhập: Hiện độc lập trang đăng nhập, ẩn toàn bộ sảnh học
                 authScreen.classList.remove('hidden');
                 mainAppScreen.classList.add('hidden');
             }
