@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>开心 HSK - Học Từ Vựng HSK</title>
+    <title>开心 HSK - Học Từ Vựng HSK (Cloud Server)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -97,7 +97,6 @@
 
                 <!-- Grid 6 ô H1 -> H6 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- H1 -->
                     <div onclick="selectCourse('HSK1', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 1</span>
@@ -108,7 +107,6 @@
                             <p class="text-slate-500 text-sm mt-1">150 từ vựng căn bản nhất</p>
                         </div>
                     </div>
-                    <!-- H2 -->
                     <div onclick="selectCourse('HSK2', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-orange-100 text-orange-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 2</span>
@@ -119,7 +117,6 @@
                             <p class="text-slate-500 text-sm mt-1">150 từ vựng tiếp theo</p>
                         </div>
                     </div>
-                    <!-- H3 -->
                     <div onclick="selectCourse('HSK3', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-amber-100 text-amber-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 3</span>
@@ -130,7 +127,6 @@
                             <p class="text-slate-500 text-sm mt-1">Giao tiếp hàng ngày trôi chảy</p>
                         </div>
                     </div>
-                    <!-- H4 -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-emerald-100 text-emerald-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 4</span>
@@ -144,7 +140,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- H5 -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 5</span>
@@ -158,7 +153,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- H6 -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
                         <div class="flex justify-between items-center">
                             <span class="bg-purple-100 text-purple-600 font-bold px-3 py-1 rounded-lg text-sm">HSK 6</span>
@@ -266,7 +260,7 @@
                 <button onclick="createCourseCode()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-lg shadow transition text-sm">Tạo và lưu mã</button>
             </div>
             <div class="border-t pt-3">
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Danh sách mã đã tạo:</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Danh sách mã trên Server:</h4>
                 <div id="admin-codes-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
             </div>
         </div>
@@ -277,8 +271,26 @@
         开心 HSK - Ứng dụng học từ vựng tiếng Trung trực tuyến © 2026
     </footer>
 
-    <!-- Script Logic -->
-    <script>
+    <!-- Script kết nối Firebase Cloud Server -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // ================= THAY THẾ CONFIG FIREBASE CỦA BẠN VÀO ĐÂY =================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // =========================================================================
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
         const vocabData = [
             { id: 1, level: "HSK1", book: "Tất cả", word: "爱", pinyin: "ài", meaning: "Yêu, thích", type: "Động từ" },
             { id: 2, level: "HSK1", book: "Tất cả", word: "爸爸", pinyin: "bàba", meaning: "Bố, cha", type: "Danh từ" },
@@ -292,28 +304,39 @@
         ];
 
         let currentUser = localStorage.getItem("hsk_user") || null;
-        let userList = JSON.parse(localStorage.getItem("hsk_users")) || [{ username: "admin", pass: "admin123", role: "admin" }];
-        
-        // Đã tích hợp danh sách mã kích hoạt mặc định theo yêu cầu
-        let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [
-            { code: "HSK1-VIP-01", level: "HSK1", used: false, usedBy: null },
-            { code: "HSK1-VIP-02", level: "HSK1", used: false, usedBy: null },
-            { code: "HSK2-VIP-01", level: "HSK2", used: false, usedBy: null },
-            { code: "HSK3-VIP-01", level: "HSK3", used: false, usedBy: null },
-            { code: "HSK4-VIP-01", level: "HSK4-Tập 1", used: false, usedBy: null },
-            { code: "HSK4-VIP-02", level: "HSK4-Tập 2", used: false, usedBy: null },
-            { code: "HSK5-VIP-01", level: "HSK5-Tập 1", used: false, usedBy: null },
-            { code: "HSK6-VIP-01", level: "HSK6-Tập 1", used: false, usedBy: null }
-        ];
-        
         let currentLevel = "HSK1";
         let currentBook = "Tất cả";
 
-        window.onload = function() {
+        window.onload = async function() {
+            // Khởi tạo tài khoản admin và mã mặc định lên Firebase nếu server trống lần đầu
+            await initDefaultDataOnCloud();
             updateUIState();
         };
 
-        function switchAuthMode(mode) {
+        async function initDefaultDataOnCloud() {
+            const dbRef = ref(db);
+            const snapshot = await get(child(dbRef, 'users'));
+            if (!snapshot.exists()) {
+                await set(ref(db, 'users/admin'), { username: "admin", pass: "admin123", role: "admin" });
+            }
+
+            const codeSnapshot = await get(child(dbRef, 'codes'));
+            if (!codeSnapshot.exists()) {
+                const defaultCodes = {
+                    "HSK1-VIP-01": { code: "HSK1-VIP-01", level: "HSK1", used: false, usedBy: null },
+                    "HSK1-VIP-02": { code: "HSK1-VIP-02", level: "HSK1", used: false, usedBy: null },
+                    "HSK2-VIP-01": { code: "HSK2-VIP-01", level: "HSK2", used: false, usedBy: null },
+                    "HSK3-VIP-01": { code: "HSK3-VIP-01", level: "HSK3", used: false, usedBy: null },
+                    "HSK4-VIP-01": { code: "HSK4-VIP-01", level: "HSK4-Tập 1", used: false, usedBy: null },
+                    "HSK4-VIP-02": { code: "HSK4-VIP-02", level: "HSK4-Tập 2", used: false, usedBy: null },
+                    "HSK5-VIP-01": { code: "HSK5-VIP-01", level: "HSK5-Tập 1", used: false, usedBy: null },
+                    "HSK6-VIP-01": { code: "HSK6-VIP-01", level: "HSK6-Tập 1", used: false, usedBy: null }
+                };
+                await set(ref(db, 'codes'), defaultCodes);
+            }
+        }
+
+        window.switchAuthMode = function(mode) {
             const btnLogin = document.getElementById('btn-mode-login');
             const btnReg = document.getElementById('btn-mode-register');
             const formLogin = document.getElementById('login-form');
@@ -332,66 +355,73 @@
             }
         }
 
-        function handleLogin() {
+        window.handleLogin = async function() {
             const u = document.getElementById('login-username').value.trim();
             const p = document.getElementById('login-password').value.trim();
-            const found = userList.find(x => x.username === u && x.pass === p);
-            if(!found) { alert('Sai tên tài khoản hoặc mật khẩu!'); return; }
+            if(!u || !p) { alert('Vui lòng nhập đầy đủ tên tài khoản và mật khẩu!'); return; }
+
+            const snapshot = await get(child(ref(db), `users/${u}`));
+            if(!snapshot.exists()) { alert('Tài khoản không tồn tại!'); return; }
             
-            currentUser = found.username;
+            const userData = snapshot.val();
+            if(userData.pass !== p) { alert('Sai mật khẩu!'); return; }
+            
+            currentUser = u;
             localStorage.setItem("hsk_user", currentUser);
             updateUIState();
         }
 
-        function handleRegister() {
+        window.handleRegister = async function() {
             const u = document.getElementById('reg-username').value.trim();
             const p = document.getElementById('reg-password').value.trim();
             const code = document.getElementById('reg-course-code').value.trim();
 
             if(!u || !p || !code) { alert('Vui lòng điền đầy đủ thông tin!'); return; }
-            if(userList.some(x => x.username === u)) { alert('Tên tài khoản đã tồn tại!'); return; }
 
-            const codeObj = activeCodes.find(x => x.code === code);
-            if(!codeObj) { alert('Mã khóa học không hợp lệ hoặc không tồn tại!'); return; }
-            
-            // Kiểm tra xem mã đã được sử dụng chưa
-            if(codeObj.used) {
-                alert(`Mã kích hoạt này đã được sử dụng bởi tài khoản "${codeObj.usedBy || 'khác'}"! Mỗi mã chỉ được dùng cho 1 tài khoản.`);
+            // Kiểm tra xem tên tài khoản đã có trên Server chưa
+            const userSnap = await get(child(ref(db), `users/${u}`));
+            if(userSnap.exists()) { alert('Tên tài khoản này đã tồn tại trên hệ thống!'); return; }
+
+            // Kiểm tra mã trên Server
+            const codeRef = ref(db, `codes/${code}`);
+            const codeSnap = await get(codeRef);
+            if(!codeSnap.exists()) { alert('Mã kích hoạt không tồn tại hoặc không hợp lệ!'); return; }
+
+            const codeData = codeSnap.val();
+            if(codeData.used) {
+                alert(`Mã này đã được sử dụng bởi tài khoản "${codeData.usedBy || 'khác'}" trước đó!`);
                 return;
             }
 
-            // Đánh dấu mã đã được sử dụng
-            codeObj.used = true;
-            codeObj.usedBy = u;
-            localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
+            // Cập nhật trạng thái mã thành Đã dùng trên Server ngay lập tức
+            await update(codeRef, { used: true, usedBy: u });
 
-            // Tạo tài khoản mới
-            userList.push({ username: u, pass: p, role: 'student', assignedLevel: codeObj.level });
-            localStorage.setItem("hsk_users", JSON.stringify(userList));
+            // Lưu tài khoản mới lên Server
+            await set(ref(db, `users/${u}`), { username: u, pass: p, role: 'student', assignedLevel: codeData.level });
 
             alert('Đăng ký tài khoản thành công! Hãy chuyển sang phần đăng nhập.');
             switchAuthMode('login');
         }
 
-        function logout() {
+        window.logout = function() {
             currentUser = null;
             localStorage.removeItem("hsk_user");
             updateUIState();
         }
 
-        function updateUIState() {
+        window.updateUIState = async function() {
             const authScreen = document.getElementById('auth-screen');
             const mainAppScreen = document.getElementById('main-app-screen');
             const welcome = document.getElementById('welcome-user');
             const adminBtn = document.getElementById('admin-panel-btn');
-            const userObj = userList.find(x => x.username === currentUser);
 
             if(currentUser) {
                 authScreen.classList.add('hidden');
                 mainAppScreen.classList.remove('hidden');
                 welcome.innerText = `Xin chào, ${currentUser}!`;
                 
-                if(userObj && userObj.role === 'admin') {
+                const userSnap = await get(child(ref(db), `users/${currentUser}`));
+                if(userSnap.exists() && userSnap.val().role === 'admin') {
                     adminBtn.classList.remove('hidden');
                 } else {
                     adminBtn.classList.add('hidden');
@@ -403,7 +433,7 @@
             }
         }
 
-        function switchTab(tabName) {
+        window.switchTab = function(tabName) {
             document.getElementById('tab-home').classList.add('hidden');
             document.getElementById('tab-vocabulary').classList.add('hidden');
             document.getElementById('tab-flashcard').classList.add('hidden');
@@ -414,7 +444,7 @@
             if(tabName === 'flashcard') initFlashcard();
         }
 
-        function selectCourse(level, book) {
+        window.selectCourse = function(level, book) {
             currentLevel = level;
             currentBook = book;
             document.getElementById('current-course-title').innerText = `${level} ${book !== 'Tất cả' ? '- ' + book : ''}`;
@@ -423,39 +453,52 @@
         }
 
         // Admin Modal
-        function openAdminModal() {
+        window.openAdminModal = function() {
             document.getElementById('admin-modal').classList.remove('hidden');
             renderAdminCodes();
         }
-        function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
+        window.closeAdminModal = function() { document.getElementById('admin-modal').classList.add('hidden'); }
 
-        function generateRandomCode() {
+        window.generateRandomCode = function() {
             const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
             document.getElementById('admin-new-code').value = `HSK-VIP-${randomStr}`;
         }
 
-        function createCourseCode() {
+        window.createCourseCode = async function() {
             const codeVal = document.getElementById('admin-new-code').value.trim();
             const levelVal = document.getElementById('admin-code-level').value;
             if(!codeVal) { alert('Vui lòng nhập mã khóa học!'); return; }
-            if(activeCodes.some(x => x.code === codeVal)) { alert('Mã này đã tồn tại trong hệ thống!'); return; }
 
-            activeCodes.push({ code: codeVal, level: levelVal, used: false, usedBy: null });
-            localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
+            const codeRef = ref(db, `codes/${codeVal}`);
+            const snap = await get(codeRef);
+            if(snap.exists()) { alert('Mã này đã tồn tại trên Server!'); return; }
+
+            await set(codeRef, { code: codeVal, level: levelVal, used: false, usedBy: null });
             document.getElementById('admin-new-code').value = '';
             renderAdminCodes();
-            alert('Tạo mã thành công!');
+            alert('Tạo mã lên Cloud thành công!');
         }
 
-        function renderAdminCodes() {
+        window.renderAdminCodes = async function() {
             const listEl = document.getElementById('admin-codes-list');
+            listEl.innerHTML = 'Đang tải dữ liệu từ Server...';
+            
+            const snapshot = await get(child(ref(db), 'codes'));
             listEl.innerHTML = '';
-            activeCodes.forEach((item, index) => {
+            
+            if (!snapshot.exists()) {
+                listEl.innerHTML = '<p class="text-slate-400 text-xs">Chưa có mã nào.</p>';
+                return;
+            }
+
+            const codesObj = snapshot.val();
+            Object.keys(codesObj).forEach(key => {
+                const item = codesObj[key];
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm";
+                div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm mb-2";
                 
                 const statusBadge = item.used 
-                    ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã sử dụng bởi: ${item.usedBy}</span>` 
+                    ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã dùng bởi: ${item.usedBy}</span>` 
                     : `<span class="inline-block mt-1 text-[11px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-semibold">Chưa sử dụng</span>`;
 
                 div.innerHTML = `
@@ -463,20 +506,21 @@
                         <div><b>${item.code}</b> <span class="text-xs text-slate-500">(${item.level})</span></div>
                         <div>${statusBadge}</div>
                     </div> 
-                    <button onclick="deleteCode(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1">Xóa</button>
+                    <button onclick="deleteCode('${item.code}')" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1">Xóa</button>
                 `;
                 listEl.appendChild(div);
             });
         }
 
-        function deleteCode(index) {
-            activeCodes.splice(index, 1);
-            localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
-            renderAdminCodes();
+        window.deleteCode = async function(codeKey) {
+            if(confirm(`Bạn có chắc muốn xóa mã ${codeKey} không?`)) {
+                await remove(ref(db, `codes/${codeKey}`));
+                renderAdminCodes();
+            }
         }
 
         // Từ vựng
-        function renderVocabList() {
+        window.renderVocabList = function() {
             const keyword = document.getElementById('search-box').value.toLowerCase();
             const grid = document.getElementById('vocab-grid');
             grid.innerHTML = '';
@@ -513,8 +557,7 @@
             });
         }
 
-        // Phát âm từ vựng (Sử dụng Web Speech API tiếng Trung)
-        function speakText(text) {
+        window.speakText = function(text) {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
@@ -529,7 +572,7 @@
         let fcIndex = 0;
         let isFlipped = false;
 
-        function initFlashcard() {
+        window.initFlashcard = function() {
             fcList = vocabData.filter(item => item.level === currentLevel && (currentBook === 'Tất cả' || item.book === currentBook));
             if(fcList.length === 0) fcList = vocabData;
             fcIndex = 0;
@@ -537,7 +580,7 @@
             showCurrentCard();
         }
 
-        function showCurrentCard() {
+        window.showCurrentCard = function() {
             if(fcList.length === 0) return;
             const item = fcList[fcIndex];
             document.getElementById('fc-level').innerText = `${item.level} - ${item.book}`;
@@ -546,38 +589,32 @@
             document.getElementById('fc-meaning').innerText = item.meaning;
             
             const meaningEl = document.getElementById('fc-meaning');
-            if(isFlipped) {
-                meaningEl.classList.remove('hidden');
-            } else {
-                meaningEl.classList.add('hidden');
-            }
+            if(isFlipped) meaningEl.classList.remove('hidden');
+            else meaningEl.classList.add('hidden');
         }
 
-        function flipCard() {
+        window.flipCard = function() {
             isFlipped = !isFlipped;
             const meaningEl = document.getElementById('fc-meaning');
-            if(isFlipped) {
-                meaningEl.classList.remove('hidden');
-            } else {
-                meaningEl.classList.add('hidden');
-            }
+            if(isFlipped) meaningEl.classList.remove('hidden');
+            else meaningEl.classList.add('hidden');
         }
 
-        function nextCard() {
+        window.nextCard = function() {
             if(fcList.length === 0) return;
             fcIndex = (fcIndex + 1) % fcList.length;
             isFlipped = false;
             showCurrentCard();
         }
 
-        function prevCard() {
+        window.prevCard = function() {
             if(fcList.length === 0) return;
             fcIndex = (fcIndex - 1 + fcList.length) % fcList.length;
             isFlipped = false;
             showCurrentCard();
         }
 
-        function playAudioCurrentCard() {
+        window.playAudioCurrentCard = function() {
             if(fcList.length === 0) return;
             speakText(fcList[fcIndex].word);
         }
@@ -587,7 +624,7 @@
         let quizIndex = 0;
         let quizScore = 0;
 
-        function startQuiz() {
+        window.startQuiz = function() {
             quizList = vocabData.filter(item => item.level === currentLevel && (currentBook === 'Tất cả' || item.book === currentBook));
             if(quizList.length < 3) quizList = [...vocabData];
             quizList.sort(() => Math.random() - 0.5);
@@ -596,11 +633,11 @@
             loadQuizQuestion();
         }
 
-        function loadQuizQuestion() {
+        window.loadQuizQuestion = function() {
             const totalQuestions = Math.min(5, quizList.length);
             if(quizIndex >= totalQuestions) {
                 document.getElementById('quiz-box').innerHTML = `
-                    <div class="text-center space-y-4 py8">
+                    <div class="text-center space-y-4 py-8">
                         <h3 class="text-2xl font-bold text-slate-800">Hoàn thành bài trắc nghiệm!</h3>
                         <p class="text-lg text-slate-600">Điểm số của bạn: <b class="text-red-600">${quizScore} / ${totalQuestions}</b></p>
                         <button onclick="startQuiz()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium shadow hover:bg-red-700">Làm lại</button>
@@ -617,9 +654,7 @@
             let options = [currentQ.meaning];
             while(options.length < 4 && options.length < vocabData.length) {
                 const randomItem = vocabData[Math.floor(Math.random() * vocabData.length)];
-                if(!options.includes(randomItem.meaning)) {
-                    options.push(randomItem.meaning);
-                }
+                if(!options.includes(randomItem.meaning)) options.push(randomItem.meaning);
             }
             options.sort(() => Math.random() - 0.5);
 
@@ -634,7 +669,7 @@
             });
         }
 
-        function checkAnswer(selected, correct, btn) {
+        window.checkAnswer = function(selected, correct, btn) {
             const allBtns = document.getElementById('quiz-options').querySelectorAll('button');
             allBtns.forEach(b => b.disabled = true);
 
