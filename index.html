@@ -293,7 +293,15 @@
 
         let currentUser = localStorage.getItem("hsk_user") || null;
         let userList = JSON.parse(localStorage.getItem("hsk_users")) || [{ username: "admin", pass: "admin123", role: "admin" }];
-        let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [{ code: "HSK4-VIP-2026", level: "HSK4-Tập 1" }];
+        
+        // Thêm các mã random mẫu sẵn để test ngay trên mọi thiết bị
+        let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [
+            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1" },
+            { code: "HSK1-ABC-123", level: "HSK1" },
+            { code: "HSK2-XYZ-456", level: "HSK2" },
+            { code: "HSK3-VIP-789", level: "HSK3" },
+            { code: "HSK4-VIP-888", level: "HSK4-Tập 2" }
+        ];
         
         let currentLevel = "HSK1";
         let currentBook = "Tất cả";
