@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开心 HSK - Học Từ Vựng HSK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+    <header class="bg-red-600 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home')">
+                <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide">开心 HSK</h1>
+            </div>
+            <div id="user-nav" class="flex items-center space-x-4">
+                <span id="welcome-user" class="text-sm font-medium"></span>
+                <button onclick="logout()" id="logout-btn" class="hidden bg-red-700 hover:bg-red-800 px-3 py-1 rounded text-sm transition">Đăng xuất</button>
+                <button onclick="openLoginModal()" id="login-btn" class="bg-white text-red-600 font-semibold px-4 py-1.5 rounded shadow text-sm hover:bg-slate-100 transition">Đăng nhập</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+        <div id="tab-home" class="space-y-6">
+            <div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-8 text-white shadow-lg">
+                <h2 class="text-3xl font-extrabold mb-2">Chinh phục từ vựng HSK dễ dàng</h2>
+                <p class="opacity-90 mb-6">Học từ vựng thông qua Flashcard, phát âm chuẩn xác và trắc nghiệm kiểm tra trình độ.</p>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="switchTab('vocabulary')" class="bg-white text-red-600 font-bold px-5 py-2.5 rounded-xl shadow hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-book-open mr-2"></i> Danh sách từ vựng
+                    </button>
+                    <button onclick="switchTab('flashcard')" class="bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl shadow hover:bg-red-800 transition">
+                        <i class="fa-solid fa-clone mr-2"></i> Luyện Flashcard
+                    </button>
+                    <button onclick="switchTab('quiz')" class="bg-orange-700 text-white font-bold px-5 py-2.5 rounded-xl shadow hover:bg-orange-800 transition">
+                        <i class="fa-solid fa-brain mr-2"></i> Trắc nghiệm nhanh
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div class="bg-red-100 text-red-600 p-4 rounded-xl text-2xl"><i class="fa-solid fa-list-check"></i></div>
+                    <div>
+                        <p class="text-slate-500 text-sm">Tổng số từ vựng</p>
+                        <h3 class="text-2xl font-bold" id="stat-total">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div class="bg-green-100 text-green-600 p-4 rounded-xl text-2xl"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <p class="text-slate-500 text-sm">Đã học</p>
+                        <h3 class="text-2xl font-bold" id="stat-learned">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center space-x-4">
+                    <div class="bg-amber-100 text-amber-600 p-4 rounded-xl text-2xl"><i class="fa-solid fa-heart"></i></div>
+                    <div>
+                        <p class="text-slate-500 text-sm">Yêu thích</p>
+                        <h3 class="text-2xl font-bold" id="stat-fav">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-vocabulary" class="hidden space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm">
+                <div class="flex items-center space-x-2 w-full md:w-auto">
+                    <select id="filter-level" onchange="renderVocabList()" class="border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500">
+                        <option value="ALL">Tất cả cấp độ</option>
+                        <option value="HSK1">HSK 1 (150 từ)</option>
+                        <option value="HSK4">HSK 4 (Quyển Thượng)</option>
+                    </select>
+                    <input type="text" id="search-box" oninput="renderVocabList()" placeholder="Tìm kiếm chữ Hán, pinyin, nghĩa..." class="border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 w-full md:w-64">
+                </div>
+                <button onclick="switchTab('home')" class="text-slate-500 hover:text-slate-700 text-sm font-medium"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại trang chủ</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="vocab-grid"></div>
+        </div>
+
+        <div id="tab-flashcard" class="hidden max-w-xl mx-auto space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">Luyện tập Flashcard</h3>
+                <button onclick="switchTab('home')" class="text-slate-500 text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
+            </div>
+            <div id="flashcard-container" class="bg-white rounded-2xl shadow-md p-8 text-center min-h-[280px] flex flex-col justify-between cursor-pointer border border-slate-200" onclick="flipCard()">
+                <div><span id="fc-level" class="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-1 rounded-full">HSK 1</span></div>
+                <div class="space-y-3">
+                    <h2 id="fc-word" class="text-5xl font-extrabold text-slate-800">--</h2>
+                    <p id="fc-pinyin" class="text-lg text-red-600 font-medium">--</p>
+                    <p id="fc-meaning" class="text-xl text-slate-600 hidden">--</p>
+                </div>
+                <p class="text-xs text-slate-400 italic">Nhấn vào thẻ để lật xem nghĩa</p>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button onclick="prevCard()" class="bg-white border border-slate-300 px-5 py-2 rounded-xl font-medium shadow-sm hover:bg-slate-50"><i class="fa-solid fa-chevron-left mr-1"></i> Từ trước</button>
+                <button onclick="playAudioCurrentCard()" class="bg-red-50 text-red-600 px-5 py-2 rounded-xl font-medium hover:bg-red-100"><i class="fa-solid fa-volume-high mr-1"></i> Phát âm</button>
+                <button onclick="nextCard()" class="bg-red-600 text-white px-5 py-2 rounded-xl font-medium shadow hover:bg-red-700">Từ tiếp <i class="fa-solid fa-chevron-right ml-1"></i></button>
+            </div>
+        </div>
+
+        <div id="tab-quiz" class="hidden max-w-xl mx-auto space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold">Trắc nghiệm từ vựng</h3>
+                <button onclick="switchTab('home')" class="text-slate-500 text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
+            </div>
+            <div id="quiz-box" class="bg-white rounded-2xl shadow-md p-6 space-y-6 border border-slate-200">
+                <div class="flex justify-between text-sm text-slate-500">
+                    <span id="quiz-progress">Câu 1/5</span>
+                    <span id="quiz-score">Điểm: 0</span>
+                </div>
+                <div class="text-center space-y-2">
+                    <p class="text-sm text-slate-400">Nghĩa của từ này là gì?</p>
+                    <h2 id="quiz-question" class="text-4xl font-extrabold text-slate-800">--</h2>
+                </div>
+                <div id="quiz-options" class="grid grid-cols-1 gap-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="login-modal" class="fixed inset-0 bg-black/50 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-bold">Đăng nhập tài khoản</h3>
+                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản</label>
+                    <input type="text" id="input-username" placeholder="Nhập tên của bạn..." class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Mã mời / Mật khẩu</label>
+                    <input type="password" id="input-password" placeholder="HSK4-DENAM" class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 text-sm">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-red-600 text-white font-bold py-2 rounded-lg shadow hover:bg-red-700 transition">Đăng nhập</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+        开心 HSK - Ứng dụng học từ vựng tiếng Trung trực tuyến © 2026
+    </footer>
+
+    <script>
+        const vocabData = [
+            { id: 1, level: "HSK1", word: "爱", pinyin: "ài", meaning: "Yêu, thích", type: "Động từ" },
+            { id: 2, level: "HSK1", word: "八", pinyin: "bā", meaning: "Số tám", type: "Số từ" },
+            { id: 3, level: "HSK1", word: "爸爸", pinyin: "bàba", meaning: "Bố, cha", type: "Danh từ" },
+            { id: 4, level: "HSK1", word: "杯子", pinyin: "bēizi", meaning: "Cốc, ly", type: "Danh từ" },
+            { id: 5, level: "HSK1", word: "北京", pinyin: "Běijīng", meaning: "Bắc Kinh", type: "Danh từ riêng" },
+            { id: 6, level: "HSK4", word: "爱情", pinyin: "àiqíng", meaning: "Tình yêu", type: "Danh từ" },
+            { id: 7, level: "HSK4", word: "安排", pinyin: "ānpái", meaning: "Sắp xếp, bố trí", type: "Động từ" },
+            { id: 8, level: "HSK4", word: "安全", pinyin: "ānquán", meaning: "An toàn", type: "Tính từ" },
+            { id: 9, level: "HSK4", word: "按时", pinyin: "ànshí", meaning: "Đúng giờ", type: "Phó từ" },
+            { id: 10, level: "HSK4", word: "按照", pinyin: "ànzhào", meaning: "Dựa theo, chiếu theo", type: "Giới từ" }
+        ];
+
+        let currentUser = localStorage.getItem("hsk_user") || null;
+        let learnedWords = JSON.parse(localStorage.getItem("hsk_learned")) || [];
+        let favWords = JSON.parse(localStorage.getItem("hsk_fav")) || [];
+
+        window.onload = function() {
+            updateUserUI();
+            updateStats();
+            renderVocabList();
+            initFlashcard();
+        };
+
+        function switchTab(tabName) {
+            document.getElementById('tab-home').classList.add('hidden');
+            document.getElementById('tab-vocabulary').classList.add('hidden');
+            document.getElementById('tab-flashcard').classList.add('hidden');
+            document.getElementById('tab-quiz').classList.add('hidden');
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            if(tabName === 'quiz') startQuiz();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total').innerText = vocabData.length;
+            document.getElementById('stat-learned').innerText = learnedWords.length;
+            document.getElementById('stat-fav').innerText = favWords.length;
+        }
+
+        function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
+        
+        function handleLogin() {
+            const username = document.getElementById('input-username').value.trim();
+            if(!username) { alert('Vui lòng nhập tên tài khoản!'); return; }
+            currentUser = username;
+            localStorage.setItem("hsk_user", currentUser);
+            updateUserUI();
+            closeLoginModal();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem("hsk_user");
+            updateUserUI();
+        }
+
+        function updateUserUI() {
+            const welcome = document.getElementById('welcome-user');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            if(currentUser) {
+                welcome.innerText = `Xin chào, ${currentUser}!`;
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+            } else {
+                welcome.innerText = '';
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+            }
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Trình duyệt của bạn không hỗ trợ tính năng phát âm.');
+            }
+        }
+
+        function renderVocabList() {
+            const levelFilter = document.getElementById('filter-level').value;
+            const keyword = document.getElementById('search-box').value.toLowerCase();
+            const grid = document.getElementById('vocab-grid');
+            grid.innerHTML = '';
+
+            const filtered = vocabData.filter(item => {
+                const matchLevel = (levelFilter === 'ALL' || item.level === levelFilter);
+                const matchKey = item.word.toLowerCase().includes(keyword) || 
+                                 item.pinyin.toLowerCase().includes(keyword) || 
+                                 item.meaning.toLowerCase().includes(keyword);
+                return matchLevel && matchKey;
+            });
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-8">Không tìm thấy từ vựng phù hợp.</p>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isFav = favWords.includes(item.id);
+                const isLearned = learnedWords.includes(item.id);
+                const card = document.createElement('div');
+                card.className = `bg-white p-5 rounded-xl shadow-sm border ${isLearned ? 'border-green-300 bg-green-50/20' : 'border-slate-200'} flex flex-col justify-between space-y-4`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-red-100 text-red-600">${item.level}</span>
+                        <div class="space-x-2">
+                            <button onclick="toggleFav(${item.id})" class="${isFav ? 'text-red-500' : 'text-slate-300'} hover:text-red-500"><i class="fa-solid fa-heart"></i></button>
+                        </div>
+                    </div>
+                    <div class="text-center space-y-1">
+                        <h3 class="text-3xl font-bold text-slate-800">${item.word}</h3>
+                        <p class="text-red-600 font-medium">${item.pinyin}</p>
+                        <p class="text-slate-600 text-sm font-medium">${item.meaning}</p>
+                        <span class="text-xs text-slate-400 italic">(${item.type})</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-sm">
+                        <button onclick="speakText('${item.word}')" class="text-red-600 hover:text-red-700 font-medium"><i class="fa-solid fa-volume-high mr-1"></i> Nghe</button>
+                        <button onclick="toggleLearned(${item.id})" class="${isLearned ? 'text-green-600' : 'text-slate-400'} hover:text-green-600 font-medium">
+                            <i class="fa-solid fa-circle-check mr-1"></i> ${isLearned ? 'Đã học' : 'Chưa học'}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleFav(id) {
+            if(favWords.includes(id)) {
+                favWords = favWords.filter(i => i !== id);
+            } else {
+                favWords.push(id);
+            }
+            localStorage.setItem("hsk_fav", JSON.stringify(favWords));
+            updateStats();
+            renderVocabList();
+        }
+
+        function toggleLearned(id) {
+            if(learnedWords.includes(id)) {
+                learnedWords = learnedWords.filter(i => i !== id);
+            } else {
+                learnedWords.push(id);
+            }
+            localStorage.setItem("hsk_learned", JSON.stringify(learnedWords));
+            updateStats();
+            renderVocabList();
+        }
+
+        let fcIndex = 0;
+        let isFlipped = false;
+
+        function initFlashcard() { showCard(); }
+
+        function showCard() {
+            const item = vocabData[fcIndex];
+            isFlipped = false;
+            document.getElementById('fc-level').innerText = item.level;
+            document.getElementById('fc-word').innerText = item.word;
+            document.getElementById('fc-pinyin').innerText = item.pinyin;
+            document.getElementById('fc-pinyin').classList.remove('hidden');
+            document.getElementById('fc-meaning').innerText = item.meaning;
+            document.getElementById('fc-meaning').classList.add('hidden');
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const meaningEl = document.getElementById('fc-meaning');
+            const pinyinEl = document.getElementById('fc-pinyin');
+            if(isFlipped) {
+                meaningEl.classList.remove('hidden');
+                pinyinEl.classList.add('hidden');
+            } else {
+                meaningEl.classList.add('hidden');
+                pinyinEl.classList.remove('hidden');
+            }
+        }
+
+        function nextCard() { fcIndex = (fcIndex + 1) % vocabData.length; showCard(); }
+        function prevCard() { fcIndex = (fcIndex - 1 + vocabData.length) % vocabData.length; showCard(); }
+        function playAudioCurrentCard() { speakText(vocabData[fcIndex].word); }
+
+        let quizScore = 0;
+        let currentQuizIndex = 0;
+        const totalQuizQuestions = 5;
+
+        function startQuiz() {
+            quizScore = 0;
+            currentQuizIndex = 0;
+            nextQuizQuestion();
+        }
+
+        function nextQuizQuestion() {
+            if(currentQuizIndex >= totalQuizQuestions) {
+                document.getElementById('quiz-box').innerHTML = `
+                    <div class="text-center space-y-4 py-6">
+                        <i class="fa-solid fa-award text-5xl text-amber-500"></i>
+                        <h3 class="text-2xl font-bold">Hoàn thành bài trắc nghiệm!</h3>
+                        <p class="text-slate-600">Số điểm đạt được: <span class="font-bold text-red-600">${quizScore}/${totalQuizQuestions}</span></p>
+                        <button onclick="startQuiz()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-medium shadow hover:bg-red-700">Làm lại</button>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('quiz-progress').innerText = `Câu ${currentQuizIndex + 1}/${totalQuizQuestions}`;
+            document.getElementById('quiz-score').innerText = `Điểm: ${quizScore}`;
+
+            const currentQ = vocabData[Math.floor(Math.random() * vocabData.length)];
+            document.getElementById('quiz-question').innerText = currentQ.word;
+
+            let options = [currentQ.meaning];
+            while(options.length < 3) {
+                const randomItem = vocabData[Math.floor(Math.random() * vocabData.length)];
+                if(!options.includes(randomItem.meaning)) {
+                    options.push(randomItem.meaning);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-red-50 hover:border-red-300 font-medium transition text-slate-700";
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(opt === currentQ.meaning) {
+                        quizScore++;
+                        btn.classList.add('bg-green-100', 'text-green-700');
+                    } else {
+                        btn.classList.add('bg-red-100', 'text-red-700');
+                    }
+                    setTimeout(() => {
+                        currentQuizIndex++;
+                        nextQuizQuestion();
+                    }, 800);
+                };
+                optionsContainer.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
