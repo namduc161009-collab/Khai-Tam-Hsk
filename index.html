@@ -294,13 +294,13 @@
         let currentUser = localStorage.getItem("hsk_user") || null;
         let userList = JSON.parse(localStorage.getItem("hsk_users")) || [{ username: "admin", pass: "admin123", role: "admin" }];
         
-        // Thêm các mã random mẫu sẵn để test ngay trên mọi thiết bị
+        // Quản lý mã kích hoạt với trạng thái used (đã dùng) và usedBy (tài khoản đã dùng)
         let activeCodes = JSON.parse(localStorage.getItem("hsk_codes")) || [
-            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1" },
-            { code: "HSK1-ABC-123", level: "HSK1" },
-            { code: "HSK2-XYZ-456", level: "HSK2" },
-            { code: "HSK3-VIP-789", level: "HSK3" },
-            { code: "HSK4-VIP-888", level: "HSK4-Tập 2" }
+            { code: "HSK4-VIP-2026", level: "HSK4-Tập 1", used: false, usedBy: null },
+            { code: "HSK1-ABC-123", level: "HSK1", used: false, usedBy: null },
+            { code: "HSK2-XYZ-456", level: "HSK2", used: false, usedBy: null },
+            { code: "HSK3-VIP-789", level: "HSK3", used: false, usedBy: null },
+            { code: "HSK4-VIP-888", level: "HSK4-Tập 2", used: false, usedBy: null }
         ];
         
         let currentLevel = "HSK1";
@@ -350,7 +350,19 @@
 
             const codeObj = activeCodes.find(x => x.code === code);
             if(!codeObj) { alert('Mã khóa học không hợp lệ hoặc không tồn tại!'); return; }
+            
+            // Kiểm tra xem mã đã được sử dụng chưa
+            if(codeObj.used) {
+                alert(`Mã kích hoạt này đã được sử dụng bởi tài khoản "${codeObj.usedBy || 'khác'}"! Mỗi mã chỉ được dùng cho 1 tài khoản.`);
+                return;
+            }
 
+            // Đánh dấu mã đã được sử dụng
+            codeObj.used = true;
+            codeObj.usedBy = u;
+            localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
+
+            // Tạo tài khoản mới
             userList.push({ username: u, pass: p, role: 'student', assignedLevel: codeObj.level });
             localStorage.setItem("hsk_users", JSON.stringify(userList));
 
@@ -423,8 +435,9 @@
             const codeVal = document.getElementById('admin-new-code').value.trim();
             const levelVal = document.getElementById('admin-code-level').value;
             if(!codeVal) { alert('Vui lòng nhập mã khóa học!'); return; }
+            if(activeCodes.some(x => x.code === codeVal)) { alert('Mã này đã tồn tại trong hệ thống!'); return; }
 
-            activeCodes.push({ code: codeVal, level: levelVal });
+            activeCodes.push({ code: codeVal, level: levelVal, used: false, usedBy: null });
             localStorage.setItem("hsk_codes", JSON.stringify(activeCodes));
             document.getElementById('admin-new-code').value = '';
             renderAdminCodes();
@@ -437,7 +450,19 @@
             activeCodes.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border text-sm";
-                div.innerHTML = `<span><b>${item.code}</b> (${item.level})</span> <button onclick="deleteCode(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Xóa</button>`;
+                
+                // Hiển thị nhãn trạng thái đã dùng hoặc chưa dùng
+                const statusBadge = item.used 
+                    ? `<span class="inline-block mt-1 text-[11px] bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Đã sử dụng bởi: ${item.usedBy}</span>` 
+                    : `<span class="inline-block mt-1 text-[11px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-semibold">Chưa sử dụng</span>`;
+
+                div.innerHTML = `
+                    <div>
+                        <div><b>${item.code}</b> <span class="text-xs text-slate-500">(${item.level})</span></div>
+                        <div>${statusBadge}</div>
+                    </div> 
+                    <button onclick="deleteCode(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold px-2 py-1">Xóa</button>
+                `;
                 listEl.appendChild(div);
             });
         }
@@ -486,74 +511,113 @@
             });
         }
 
+        // Phát âm từ vựng (Sử dụng Web Speech API tiếng Trung)
         function speakText(text) {
             if ('speechSynthesis' in window) {
-                let utterance = new SpeechSynthesisUtterance(text);
+                const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
                 window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Trình duyệt của bạn không hỗ trợ phát âm!');
             }
         }
 
-        // Flashcard & Quiz
+        // Flashcard Logic
+        let fcList = [];
         let fcIndex = 0;
         let isFlipped = false;
-        function getCurrentFilteredVocab() {
-            return vocabData.filter(item => item.level === currentLevel && (currentBook === 'Tất cả' || item.book === currentBook));
+
+        function initFlashcard() {
+            fcList = vocabData.filter(item => item.level === currentLevel && (currentBook === 'Tất cả' || item.book === currentBook));
+            if(fcList.length === 0) fcList = vocabData;
+            fcIndex = 0;
+            isFlipped = false;
+            showCurrentCard();
         }
 
-        function initFlashcard() { fcIndex = 0; showCard(); }
-        function showCard() {
-            const list = getCurrentFilteredVocab();
-            if(list.length === 0) return;
-            const item = list[fcIndex % list.length];
-            isFlipped = false;
+        function showCurrentCard() {
+            if(fcList.length === 0) return;
+            const item = fcList[fcIndex];
             document.getElementById('fc-level').innerText = `${item.level} - ${item.book}`;
             document.getElementById('fc-word').innerText = item.word;
             document.getElementById('fc-pinyin').innerText = item.pinyin;
-            document.getElementById('fc-pinyin').classList.remove('hidden');
             document.getElementById('fc-meaning').innerText = item.meaning;
-            document.getElementById('fc-meaning').classList.add('hidden');
+            
+            const meaningEl = document.getElementById('fc-meaning');
+            if(isFlipped) {
+                meaningEl.classList.remove('hidden');
+            } else {
+                meaningEl.classList.add('hidden');
+            }
         }
 
         function flipCard() {
             isFlipped = !isFlipped;
-            document.getElementById('fc-meaning').classList.toggle('hidden', !isFlipped);
-            document.getElementById('fc-pinyin').classList.toggle('hidden', isFlipped);
+            const meaningEl = document.getElementById('fc-meaning');
+            if(isFlipped) {
+                meaningEl.classList.remove('hidden');
+            } else {
+                meaningEl.classList.add('hidden');
+            }
         }
 
-        function nextCard() { const l = getCurrentFilteredVocab(); if(l.length) { fcIndex = (fcIndex + 1) % l.length; showCard(); } }
-        function prevCard() { const l = getCurrentFilteredVocab(); if(l.length) { fcIndex = (fcIndex - 1 + l.length) % l.length; showCard(); } }
-        function playAudioCurrentCard() { const l = getCurrentFilteredVocab(); if(l.length) speakText(l[fcIndex % l.length].word); }
+        function nextCard() {
+            if(fcList.length === 0) return;
+            fcIndex = (fcIndex + 1) % fcList.length;
+            isFlipped = false;
+            showCurrentCard();
+        }
 
+        function prevCard() {
+            if(fcList.length === 0) return;
+            fcIndex = (fcIndex - 1 + fcList.length) % fcList.length;
+            isFlipped = false;
+            showCurrentCard();
+        }
+
+        function playAudioCurrentCard() {
+            if(fcList.length === 0) return;
+            speakText(fcList[fcIndex].word);
+        }
+
+        // Quiz Logic
+        let quizList = [];
+        let quizIndex = 0;
         let quizScore = 0;
-        let currentQuizIndex = 0;
-        const totalQuizQuestions = 5;
 
-        function startQuiz() { quizScore = 0; currentQuizIndex = 0; nextQuizQuestion(); }
-        function nextQuizQuestion() {
-            const list = getCurrentFilteredVocab();
-            if(currentQuizIndex >= totalQuizQuestions || list.length === 0) {
+        function startQuiz() {
+            quizList = vocabData.filter(item => item.level === currentLevel && (currentBook === 'Tất cả' || item.book === currentBook));
+            if(quizList.length < 3) quizList = [...vocabData];
+            quizList.sort(() => Math.random() - 0.5);
+            quizIndex = 0;
+            quizScore = 0;
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            const totalQuestions = Math.min(5, quizList.length);
+            if(quizIndex >= totalQuestions) {
                 document.getElementById('quiz-box').innerHTML = `
-                    <div class="text-center space-y-4 py-6">
-                        <i class="fa-solid fa-award text-5xl text-amber-500"></i>
-                        <h3 class="text-2xl font-bold">Hoàn thành bài trắc nghiệm!</h3>
-                        <p class="text-slate-600">Số điểm đạt được: <span class="font-bold text-red-600">${quizScore}</span></p>
-                        <button onclick="startQuiz()" class="bg-red-600 text-white px-6 py-2 rounded-xl font-medium shadow hover:bg-red-700">Làm lại</button>
+                    <div class="text-center space-y-4 py-8">
+                        <h3 class="text-2xl font-bold text-slate-800">Hoàn thành bài trắc nghiệm!</h3>
+                        <p class="text-lg text-slate-600">Điểm số của bạn: <b class="text-red-600">${quizScore} / ${totalQuestions}</b></p>
+                        <button onclick="startQuiz()" class="bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium shadow hover:bg-red-700">Làm lại</button>
                     </div>
                 `;
                 return;
             }
 
-            document.getElementById('quiz-progress').innerText = `Câu ${currentQuizIndex + 1}/${totalQuizQuestions}`;
+            const currentQ = quizList[quizIndex];
+            document.getElementById('quiz-progress').innerText = `Câu ${quizIndex + 1}/${totalQuestions}`;
             document.getElementById('quiz-score').innerText = `Điểm: ${quizScore}`;
-
-            const currentQ = list[Math.floor(Math.random() * list.length)];
             document.getElementById('quiz-question').innerText = currentQ.word;
 
             let options = [currentQ.meaning];
-            while(options.length < 3 && vocabData.length > options.length) {
+            while(options.length < 4 && options.length < vocabData.length) {
                 const randomItem = vocabData[Math.floor(Math.random() * vocabData.length)];
-                if(!options.includes(randomItem.meaning)) options.push(randomItem.meaning);
+                if(!options.includes(randomItem.meaning)) {
+                    options.push(randomItem.meaning);
+                }
             }
             options.sort(() => Math.random() - 0.5);
 
@@ -561,22 +625,33 @@
             optionsContainer.innerHTML = '';
             options.forEach(opt => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-red-50 hover:border-red-300 font-medium transition text-slate-700";
+                btn.className = "w-full text-left bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-300 p-3.5 rounded-xl text-sm font-medium transition";
                 btn.innerText = opt;
-                btn.onclick = () => {
-                    if(opt === currentQ.meaning) {
-                        quizScore++;
-                        btn.classList.add('bg-green-100', 'text-green-700');
-                    } else {
-                        btn.classList.add('bg-red-100', 'text-red-700');
-                    }
-                    setTimeout(() => {
-                        currentQuizIndex++;
-                        nextQuizQuestion();
-                    }, 800);
-                };
+                btn.onclick = () => checkAnswer(opt, currentQ.meaning, btn);
                 optionsContainer.appendChild(btn);
             });
+        }
+
+        function checkAnswer(selected, correct, btn) {
+            const allBtns = document.getElementById('quiz-options').querySelectorAll('button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if(selected === correct) {
+                btn.className = "w-full text-left bg-emerald-100 border border-emerald-400 text-emerald-800 p-3.5 rounded-xl text-sm font-medium transition";
+                quizScore++;
+            } else {
+                btn.className = "w-full text-left bg-red-100 border border-red-400 text-red-800 p-3.5 rounded-xl text-sm font-medium transition";
+                allBtns.forEach(b => {
+                    if(b.innerText === correct) {
+                        b.className = "w-full text-left bg-emerald-100 border border-emerald-400 text-emerald-800 p-3.5 rounded-xl text-sm font-medium transition";
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                quizIndex++;
+                loadQuizQuestion();
+            }, 1200);
         }
     </script>
 </body>
