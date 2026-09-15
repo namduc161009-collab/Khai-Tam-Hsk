@@ -8,76 +8,80 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
-    <!-- Header -->
-    <header class="bg-red-600 text-white shadow-md">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2 cursor-pointer" onclick="if(currentUser) switchTab('home')">
-                <i class="fa-solid fa-graduation-cap text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-wide">开心 HSK</h1>
-            </div>
-            <div id="user-nav" class="flex items-center space-x-3">
-                <button id="admin-panel-btn" onclick="openAdminModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow transition">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> Quản lý mã học viên
-                </button>
-                <span id="welcome-user" class="text-sm font-medium"></span>
-                <button onclick="logout()" id="logout-btn" class="hidden bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg text-sm transition">Đăng xuất</button>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 flex flex-col justify-center">
-        
-        <!-- Màn hình chờ bắt buộc đăng nhập (Hiển thị khi chưa đăng nhập) -->
-        <div id="auth-wall" class="max-w-md w-full mx-auto bg-white rounded-2xl shadow-lg p-8 space-y-6 border border-slate-200">
+    <!-- ================= 1. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ (Hiển thị đầu tiên) ================= -->
+    <div id="auth-screen" class="flex-grow flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6 border border-slate-200">
             <div class="text-center space-y-2">
-                <div class="inline-flex bg-red-100 text-red-600 p-3 rounded-full text-2xl mb-1">
-                    <i class="fa-solid fa-lock"></i>
+                <div class="inline-flex bg-red-100 text-red-600 p-4 rounded-full text-3xl mb-1 shadow-inner">
+                    <i class="fa-solid fa-graduation-cap"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Chào mừng đến với 开心 HSK</h2>
-                <p class="text-slate-500 text-sm">Vui lòng đăng nhập hoặc tạo tài khoản bằng mã học viên để tiếp tục.</p>
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-wide">开心 HSK</h1>
+                <p class="text-slate-500 text-sm">Học từ vựng tiếng Trung cùng Đức Nam</p>
             </div>
 
-            <!-- Tab chuyển đổi Đăng nhập / Đăng ký -->
+            <!-- Tab chuyển đổi giữa Đăng nhập và Tạo tài khoản -->
             <div class="flex border-b pb-2">
-                <button onclick="switchAuthTab('login')" id="tab-login-btn" class="flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center">Đăng nhập</button>
-                <button onclick="switchAuthTab('register')" id="tab-register-btn" class="flex-1 font-medium text-slate-400 text-sm pb-2 text-center">Tạo tài khoản</button>
+                <button onclick="switchAuthMode('login')" id="btn-mode-login" class="flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center transition">Đăng nhập tài khoản</button>
+                <button onclick="switchAuthMode('register')" id="btn-mode-register" class="flex-1 font-medium text-slate-400 text-sm pb-2 text-center transition">Tạo tài khoản</button>
             </div>
 
             <!-- Form Đăng nhập -->
-            <div id="form-login" class="space-y-4">
+            <div id="login-form" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản</label>
-                    <input type="text" id="login-username" placeholder="Nhập tên tài khoản..." class="w-full border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-red-500 text-sm">
+                    <input type="text" id="login-username" placeholder="Nhập tên tài khoản..." class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
-                    <input type="password" id="login-password" placeholder="Nhập mật khẩu..." class="w-full border border-slate-300 rounded-lg px-3 py-2.5 outline-none focus:border-red-500 text-sm">
+                    <input type="password" id="login-password" placeholder="Nhập mật khẩu..." class="w-full border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg shadow transition text-sm">Đăng nhập ngay</button>
+                <button onclick="handleLogin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">Đăng nhập ngay</button>
             </div>
 
             <!-- Form Tạo tài khoản -->
-            <div id="form-register" class="space-y-4 hidden">
+            <div id="register-form" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tên tài khoản mới</label>
-                    <input type="text" id="reg-username" placeholder="Chọn tên tài khoản..." class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 text-sm">
+                    <input type="text" id="reg-username" placeholder="Chọn tên tài khoản..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Mật khẩu</label>
-                    <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 text-sm">
+                    <input type="password" id="reg-password" placeholder="Tạo mật khẩu..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Mã khóa học / Mã kích hoạt (Do Admin cấp)</label>
-                    <input type="text" id="reg-course-code" placeholder="Nhập mã khóa học..." class="w-full border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-red-500 text-sm">
+                    <input type="text" id="reg-course-code" placeholder="Nhập mã kích hoạt..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 outline-none focus:border-red-500 text-sm bg-slate-50">
                 </div>
-                <button onclick="handleRegister()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg shadow transition text-sm">Đăng ký tài khoản</button>
+                <button onclick="handleRegister()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">Đăng ký tài khoản</button>
             </div>
         </div>
+    </div>
 
-        <!-- Màn hình chính (Bị ẩn khi chưa đăng nhập, hiện ra khi đã đăng nhập) -->
-        <div id="main-app-content" class="hidden space-y-6">
-            <!-- Home Tab: 6 ô H1 - H6 -->
+
+    <!-- ================= 2. MÀN HÌNH SẢNH CHÍNH & HỌC TẬP (Ẩn cho đến khi đăng nhập) ================= -->
+    <div id="main-app-screen" class="hidden flex-grow flex flex-col">
+        <!-- Header -->
+        <header class="bg-red-600 text-white shadow-md">
+            <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home')">
+                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                    <h1 class="text-xl font-bold tracking-wide">开心 HSK</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="admin-panel-btn" onclick="openAdminModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow transition">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Quản lý mã học viên
+                    </button>
+                    <span id="welcome-user" class="text-sm font-medium"></span>
+                    <button onclick="logout()" class="bg-red-700 hover:bg-red-800 px-3 py-1.5 rounded-lg text-sm transition font-medium">Đăng xuất</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+            
+            <!-- Tab Home: Sảnh 6 ô khóa học H1 - H6 -->
             <div id="tab-home" class="space-y-6">
                 <div class="bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 md:p-8 text-white shadow-lg">
                     <h2 class="text-2xl md:text-3xl font-extrabold mb-2">Chinh phục HSK từ cấp 1 đến cấp 6</h2>
@@ -88,7 +92,7 @@
                     <h3 class="text-xl font-bold text-slate-700"><i class="fa-solid fa-book-bookmark mr-2 text-red-600"></i>Danh sách các khóa học</h3>
                 </div>
 
-                <!-- Grid 6 ô H1 -> H6 -->
+                <!-- Grid 6 ô H1 -> H6 chuẩn như ý bạn -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- H1 -->
                     <div onclick="selectCourse('HSK1', 'Tất cả')" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-red-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between space-y-4">
@@ -168,7 +172,7 @@
                 </div>
             </div>
 
-            <!-- Tab Vocabulary -->
+            <!-- Tab Vocabulary List -->
             <div id="tab-vocabulary" class="hidden space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex items-center space-x-2 w-full md:w-auto">
@@ -178,7 +182,7 @@
                     <div class="flex items-center space-x-2">
                         <button onclick="switchTab('flashcard')" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-clone mr-1"></i> Flashcard</button>
                         <button onclick="switchTab('quiz')" class="bg-orange-50 hover:bg-orange-100 text-orange-600 px-4 py-2 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-brain mr-1"></i> Trắc nghiệm</button>
-                        <button onclick="switchTab('home')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
+                        <button onclick="switchTab('home')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-arrow-left mr-1"></i> Sảnh chính</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="vocab-grid"></div>
@@ -188,7 +192,7 @@
             <div id="tab-flashcard" class="hidden max-w-xl mx-auto space-y-6">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xl font-bold">Luyện tập Flashcard</h3>
-                    <button onclick="switchTab('vocabulary')" class="text-slate-500 text-sm hover:text-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại danh sách</button>
+                    <button onclick="switchTab('vocabulary')" class="text-slate-500 text-sm hover:text-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
                 </div>
                 <div id="flashcard-container" class="bg-white rounded-2xl shadow-md p-8 text-center min-h-[280px] flex flex-col justify-between cursor-pointer border border-slate-200" onclick="flipCard()">
                     <div><span id="fc-level" class="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-1 rounded-full">HSK</span></div>
@@ -210,7 +214,7 @@
             <div id="tab-quiz" class="hidden max-w-xl mx-auto space-y-6">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xl font-bold">Trắc nghiệm từ vựng</h3>
-                    <button onclick="switchTab('vocabulary')" class="text-slate-500 text-sm hover:text-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại danh sách</button>
+                    <button onclick="switchTab('vocabulary')" class="text-slate-500 text-sm hover:text-slate-800"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
                 </div>
                 <div id="quiz-box" class="bg-white rounded-2xl shadow-md p-6 space-y-6 border border-slate-200">
                     <div class="flex justify-between text-sm text-slate-500">
@@ -224,10 +228,10 @@
                     <div id="quiz-options" class="grid grid-cols-1 gap-3"></div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <!-- Modal Admin: Tạo và quản lý mã khóa học -->
+    <!-- Modal Admin: Tạo mã -->
     <div id="admin-modal" class="fixed inset-0 bg-black/50 hidden flex justify-center items-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
@@ -292,23 +296,23 @@
         let currentBook = "Tất cả";
 
         window.onload = function() {
-            updateUserUI();
+            updateUIState();
         };
 
-        function switchAuthTab(mode) {
-            const loginBtn = document.getElementById('tab-login-btn');
-            const regBtn = document.getElementById('tab-register-btn');
-            const formLogin = document.getElementById('form-login');
-            const formReg = document.getElementById('form-register');
+        function switchAuthMode(mode) {
+            const btnLogin = document.getElementById('btn-mode-login');
+            const btnReg = document.getElementById('btn-mode-register');
+            const formLogin = document.getElementById('login-form');
+            const formReg = document.getElementById('register-form');
 
             if(mode === 'login') {
-                loginBtn.className = "flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center";
-                regBtn.className = "flex-1 font-medium text-slate-400 text-sm pb-2 text-center";
+                btnLogin.className = "flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center transition";
+                btnReg.className = "flex-1 font-medium text-slate-400 text-sm pb-2 text-center transition";
                 formLogin.classList.remove('hidden');
                 formReg.classList.add('hidden');
             } else {
-                regBtn.className = "flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center";
-                loginBtn.className = "flex-1 font-medium text-slate-400 text-sm pb-2 text-center";
+                btnReg.className = "flex-1 font-bold text-red-600 text-sm pb-2 border-b-2 border-red-600 text-center transition";
+                btnLogin.className = "flex-1 font-medium text-slate-400 text-sm pb-2 text-center transition";
                 formReg.classList.remove('hidden');
                 formLogin.classList.add('hidden');
             }
@@ -322,7 +326,7 @@
             
             currentUser = found.username;
             localStorage.setItem("hsk_user", currentUser);
-            updateUserUI();
+            updateUIState();
         }
 
         function handleRegister() {
@@ -340,29 +344,27 @@
             localStorage.setItem("hsk_users", JSON.stringify(userList));
 
             alert('Đăng ký tài khoản thành công! Hãy chuyển sang phần đăng nhập.');
-            switchAuthTab('login');
+            switchAuthMode('login');
         }
 
         function logout() {
             currentUser = null;
             localStorage.removeItem("hsk_user");
-            updateUserUI();
+            updateUIState();
         }
 
-        function updateUserUI() {
-            const authWall = document.getElementById('auth-wall');
-            const mainAppContent = document.getElementById('main-app-content');
+        function updateUIState() {
+            const authScreen = document.getElementById('auth-screen');
+            const mainAppScreen = document.getElementById('main-app-screen');
             const welcome = document.getElementById('welcome-user');
-            const logoutBtn = document.getElementById('logout-btn');
             const adminBtn = document.getElementById('admin-panel-btn');
             const userObj = userList.find(x => x.username === currentUser);
 
             if(currentUser) {
-                // Đã đăng nhập: ẩn khung đăng nhập, hiện nội dung học tập chính
-                authWall.classList.add('hidden');
-                mainAppContent.classList.remove('hidden');
+                // Đã đăng nhập: Ẩn trang đăng nhập, hiện sảnh chính 6 ô khóa học
+                authScreen.classList.add('hidden');
+                mainAppScreen.classList.remove('hidden');
                 welcome.innerText = `Xin chào, ${currentUser}!`;
-                logoutBtn.classList.remove('hidden');
                 
                 if(userObj && userObj.role === 'admin') {
                     adminBtn.classList.remove('hidden');
@@ -371,12 +373,9 @@
                 }
                 switchTab('home');
             } else {
-                // Chưa đăng nhập: hiện khung đăng nhập độc lập, ẩn toàn bộ nội dung học
-                authWall.classList.remove('hidden');
-                mainAppContent.classList.add('hidden');
-                welcome.innerText = '';
-                logoutBtn.classList.add('hidden');
-                adminBtn.classList.add('hidden');
+                // Chưa đăng nhập: Hiện độc lập trang đăng nhập, ẩn toàn bộ sảnh học
+                authScreen.classList.remove('hidden');
+                mainAppScreen.classList.add('hidden');
             }
         }
 
@@ -399,7 +398,7 @@
             renderVocabList();
         }
 
-        // Xử lý Admin Panel
+        // Admin Modal
         function openAdminModal() {
             document.getElementById('admin-modal').classList.remove('hidden');
             renderAdminCodes();
@@ -440,7 +439,7 @@
             renderAdminCodes();
         }
 
-        // Hiển thị từ vựng theo khóa
+        // Từ vựng
         function renderVocabList() {
             const keyword = document.getElementById('search-box').value.toLowerCase();
             const grid = document.getElementById('vocab-grid');
@@ -483,8 +482,6 @@
                 let utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert('Trình duyệt không hỗ trợ phát âm.');
             }
         }
 
